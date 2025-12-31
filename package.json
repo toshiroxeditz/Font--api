@@ -1,0 +1,15 @@
+{
+  "name": "font-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "cors": "^2.8.5",
+    "express": "^4.22.1",
+    "multer": "^2.0.2"
+  },
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js"
+  }
+}

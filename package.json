@@ -1,23 +1,9 @@
 {
   "name": "font-api",
   "version": "1.0.0",
-  "description": "Unicode Font Transformation API - Convert text to 50+ stylish fonts",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "dev": "vercel dev"
-  },
-  "keywords": [
-    "fonts",
-    "unicode",
-    "text",
-    "stylist",
-    "api",
-    "converter",
-    "aesthetic",
-    "vaporwave"
-  ],
-  "author": "",
-  "license": "MIT",
-  "dependencies": {}
+  "description": "Unicode Font Transformation API",
+  "main": "api/index.js",
+  "scripts": { "start": "node api/index.js" },
+  "keywords": ["fonts", "unicode", "text", "api"],
+  "license": "MIT"
 }

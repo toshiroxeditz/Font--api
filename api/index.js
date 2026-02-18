@@ -93,4 +93,13 @@ module.exports = (req, res) => {
   
   if (!text) return res.status(400).json({ error: 'Missing text parameter', usage: { single: '/api?text=Hello&font=boldSans', list: '/api?list=true', all: '/api?text=Hello&all=true' } });
   
-  if
+  if (!font) return res.status(400).json({ error: 'Missing font parameter', available: fontList.slice(0, 10).map(f => f.id), get_all: '/api?list=true' });
+  
+  const normalizedFont = font.toLowerCase().replace(/-/g, '');
+  const fontKey = Object.keys(fonts).find(k => k.toLowerCase() === normalizedFont);
+  
+  if (!fontKey) return res.status(404).json({ error: `Font "${font}" not found`, suggestions: fontList.filter(f => f.id.toLowerCase().includes(normalizedFont)).slice(0, 5).map(f => f.id) });
+  
+  const transformed = transform(text, fontKey);
+  return res.json({ original: text, font: fontKey, transformed: transformed, category: fontList.find(f => f.id === fontKey)?.category || 'Unknown' });
+};

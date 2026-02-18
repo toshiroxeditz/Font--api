@@ -1,6 +1,5 @@
-const fonts = require('./fonts');
+const fonts = require('../fonts');
 
-// Font metadata and display names
 const fontList = [
   { id: 'script', name: 'Script', category: 'Script' },
   { id: 'boldScript', name: 'Bold Script', category: 'Script' },
@@ -15,7 +14,6 @@ const fontList = [
   { id: 'fraktur', name: 'Fraktur', category: 'Gothic' },
   { id: 'boldFraktur', name: 'Bold Fraktur', category: 'Gothic' },
   { id: 'circled', name: 'Circled', category: 'Decorative' },
-  { id: 'circledNegative', name: 'Circled Negative', category: 'Decorative' },
   { id: 'squared', name: 'Squared', category: 'Decorative' },
   { id: 'negativeSquared', name: 'Negative Squared', category: 'Decorative' },
   { id: 'parenthesized', name: 'Parenthesized', category: 'Decorative' },
@@ -64,118 +62,35 @@ const fontList = [
   { id: 'emoji2', name: 'Emoji 2', category: 'Emoji' }
 ];
 
-// Transform text using selected font
 function transform(text, fontName) {
   const font = fonts[fontName];
   if (!font) return null;
-  
-  return text.split('').map(char => {
-    // Try exact match first
-    if (font[char]) return font[char];
-    
-    // Try lowercase
-    if (font[char.toLowerCase()]) return font[char.toLowerCase()];
-    
-    // Try uppercase
-    if (font[char.toUpperCase()]) return font[char.toUpperCase()];
-    
-    // Return original if no mapping
-    return char;
-  }).join('');
+  return text.split('').map(char => font[char] || font[char.toLowerCase()] || font[char.toUpperCase()] || char).join('');
 }
 
-// Generate preview for all fonts
-function getAllPreviews(text) {
-  const previews = {};
-  Object.keys(fonts).forEach(fontKey => {
-    previews[fontKey] = transform(text, fontKey);
-  });
-  return previews;
-}
-
-// API Handler
 module.exports = (req, res) => {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   const { text, font, list, all, category } = req.query;
   
-  // List all available fonts
   if (list === 'true') {
-    const listWithPreviews = fontList.map(f => ({
-      ...f,
-      preview: transform('Hello', f.id)
-    }));
-    
+    const listWithPreviews = fontList.map(f => ({ ...f, preview: transform('Hello', f.id) }));
     if (category) {
-      return res.json({
-        count: listWithPreviews.filter(f => f.category.toLowerCase() === category.toLowerCase()).length,
-        fonts: listWithPreviews.filter(f => f.category.toLowerCase() === category.toLowerCase())
-      });
+      return res.json({ count: listWithPreviews.filter(f => f.category.toLowerCase() === category.toLowerCase()).length, fonts: listWithPreviews.filter(f => f.category.toLowerCase() === category.toLowerCase()) });
     }
-    
-    return res.json({
-      count: fontList.length,
-      fonts: listWithPreviews,
-      categories: [...new Set(fontList.map(f => f.category))]
-    });
+    return res.json({ count: fontList.length, fonts: listWithPreviews, categories: [...new Set(fontList.map(f => f.category))] });
   }
   
-  // Get all font variations at once
   if (all === 'true' && text) {
-    return res.json({
-      original: text,
-      count: Object.keys(fonts).length,
-      fonts: getAllPreviews(text)
-    });
+    const previews = {};
+    Object.keys(fonts).forEach(key => { previews[key] = transform(text, key); });
+    return res.json({ original: text, count: Object.keys(fonts).length, fonts: previews });
   }
   
-  // Transform endpoint
-  if (!text) {
-    return res.status(400).json({
-      error: 'Missing text parameter',
-      usage: {
-        single: '/api?text=Hello&font=boldSans',
-        list: '/api?list=true',
-        all: '/api?text=Hello&all=true',
-        category: '/api?list=true&category=fancy'
-      }
-    });
-  }
+  if (!text) return res.status(400).json({ error: 'Missing text parameter', usage: { single: '/api?text=Hello&font=boldSans', list: '/api?list=true', all: '/api?text=Hello&all=true' } });
   
-  if (!font) {
-    return res.status(400).json({
-      error: 'Missing font parameter',
-      available: fontList.slice(0, 10).map(f => f.id),
-      get_all: '/api?list=true'
-    });
-  }
-  
-  const normalizedFont = font.toLowerCase().replace(/-/g, '');
-  const fontKey = Object.keys(fonts).find(k => k.toLowerCase() === normalizedFont);
-  
-  if (!fontKey) {
-    return res.status(404).json({
-      error: `Font "${font}" not found`,
-      suggestions: fontList
-        .filter(f => f.id.toLowerCase().includes(normalizedFont) || normalizedFont.includes(f.id.toLowerCase()))
-        .slice(0, 5)
-        .map(f => f.id)
-    });
-  }
-  
-  const transformed = transform(text, fontKey);
-  
-  return res.json({
-    original: text,
-    font: fontKey,
-    transformed: transformed,
-    category: fontList.find(f => f.id === fontKey)?.category || 'Unknown'
-  });
-};
+  if
